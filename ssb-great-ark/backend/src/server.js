@@ -40,15 +40,23 @@ const pool = new Pool({
 
 app.get('/api/health', async (_req, res) => {
   try {
-    await pool.query('SELECT 1');
+    const result = await pool.query(`
+      SELECT
+        current_database() AS database_name,
+        current_schema() AS schema_name
+    `);
+
+    console.log('Database identity:', result.rows[0]);
 
     res.json({
       ok: true,
       service: 'ssb-great-ark-api',
-      database: 'connected'
+      database: 'connected',
+      database_name: result.rows[0].database_name,
+      schema_name: result.rows[0].schema_name
     });
   } catch (error) {
-    console.error(error);
+    console.error('Database health check failed:', error.message);
 
     res.status(503).json({
       ok: false,
